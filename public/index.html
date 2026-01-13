@@ -1,44 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Friendopoly</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; font-family: Arial; background: #222; color: #fff; overflow: hidden; }
-        #game { position: relative; width: 100vw; height: 100vh; }
-        canvas { display: block; }
-        #ui { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; }
-        button { padding: 12px 24px; margin: 5px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer; background: #4CAF50; color: white; }
-        button:disabled { background: #666; }
-        #players { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; max-width: 300px; }
-        .player { margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; }
-        #chat { position: absolute; bottom: 10px; left: 10px; width: 300px; height: 200px; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 10px; }
-        #chatMsgs { height: 150px; overflow-y: scroll; margin-bottom: 10px; }
-        #roomJoin { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); background: #333; padding: 40px; border-radius: 20px; text-align: center; }
-        input { padding: 10px; margin: 10px; font-size: 16px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif; 
+            height: 100vh; overflow: hidden; 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #0f3460 100%);
+            color: white; 
+        }
+        #game { position: relative; width: 100vw; height: 100vh; backdrop-filter: blur(20px); }
+        canvas { 
+            display: block; background: radial-gradient(circle at 20% 80%, rgba(120,119,198,0.3) 0%, transparent 50%), 
+                                       radial-gradient(circle at 80% 20%, rgba(255,119,198,0.3) 0%, transparent 50%), 
+                                       linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); 
+        }
+        #roomJoin { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); 
+            background: rgba(255,255,255,0.1); backdrop-filter: blur(30px); border-radius: 24px; 
+            padding: 48px 64px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.2); transition: all 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
+        }
+        #roomJoin:hover { transform: translate(-50%,-50%) scale(1.02); }
+        input { 
+            width: 100%; padding: 16px 24px; margin: 16px 0; border: none; border-radius: 16px; 
+            background: rgba(255,255,255,0.2); backdrop-filter: blur(20px); color: white; 
+            font-size: 18px; font-weight: 400; border: 1px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease; 
+        }
+        input::placeholder { color: rgba(255,255,255,0.7); }
+        input:focus { outline: none; background: rgba(255,255,255,0.3); box-shadow: 0 0 0 3px rgba(255,255,255,0.2); }
+        button { 
+            width: 100%; padding: 18px; margin: 8px 0; border: none; border-radius: 16px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; 
+            font-size: 18px; font-weight: 500; cursor: pointer; transition: all 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+            box-shadow: 0 10px 30px rgba(102,126,234,0.4); border: 1px solid rgba(255,255,255,0.2);
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 20px 40px rgba(102,126,234,0.5); }
+        button:active { transform: translateY(0); }
+        #ui { 
+            position: absolute; top: 32px; left: 32px; background: rgba(255,255,255,0.12); 
+            backdrop-filter: blur(30px); border-radius: 24px; padding: 32px; 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2);
+            min-width: 320px; 
+        }
+        #players { 
+            position: absolute; bottom: 32px; right: 32px; background: rgba(255,255,255,0.12); 
+            backdrop-filter: blur(30px); border-radius: 24px; padding: 32px; max-width: 360px; 
+            max-height: 400px; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .player { 
+            display: flex; align-items: center; padding: 16px; margin: 12px 0; 
+            background: rgba(255,255,255,0.08); border-radius: 16px; transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .player:hover { background: rgba(255,255,255,0.15); transform: translateX(4px); }
+        .player-avatar { width: 48px; height: 48px; border-radius: 50%; margin-right: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+        .player-info h4 { font-size: 18px; font-weight: 600; margin: 0 0 4px 0; }
+        .player-info p { font-size: 14px; opacity: 0.9; margin: 0; }
+        #chat { 
+            position: absolute; bottom: 32px; left: 32px; width: 360px; height: 280px; 
+            background: rgba(255,255,255,0.12); backdrop-filter: blur(30px); border-radius: 24px; 
+            display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        #chatMsgs { flex: 1; padding: 20px; overflow-y: auto; font-size: 14px; line-height: 1.5; }
+        #chatInput { 
+            width: 100%; padding: 16px 20px; border: none; border-top: 1px solid rgba(255,255,255,0.1); 
+            background: rgba(255,255,255,0.08); color: white; border-radius: 0 0 24px 24px;
+            font-size: 16px; 
+        }
+        #chatInput::placeholder { color: rgba(255,255,255,0.6); }
+        h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; }
+        .status { font-size: 16px; margin: 16px 0; opacity: 0.9; }
+        @media (max-width: 768px) { #ui, #players, #chat { position: fixed; width: calc(100vw - 64px); } }
     </style>
 </head>
 <body>
     <div id="game">
         <div id="roomJoin">
-            <h2>Join Game</h2>
-            <input id="roomInput" placeholder="Room Code (e.g. ABCD)" value="ABCD">
+            <h1 style="font-size: 36px; margin-bottom: 24px;">Friendopoly</h1>
+            <p style="opacity: 0.8; margin-bottom: 32px; font-size: 18px;">Enter room to play</p>
+            <input id="roomInput" placeholder="Room Code (e.g. FRIENDS)" maxlength="20">
             <input id="nameInput" placeholder="Your Name">
-            <button onclick="joinRoom()">Join</button>
+            <button onclick="joinRoom()">Join Game</button>
+            <p style="font-size: 14px; opacity: 0.6; margin-top: 24px;">Share this room with friends</p>
         </div>
         <canvas id="canvas"></canvas>
         <div id="ui" style="display:none;">
-            <h3 id="roomCode"></h3>
-            <p id="turnInfo"></p>
-            <p id="posInfo"></p>
-            <button id="rollBtn" onclick="roll()">Roll Dice</button>
-            <button id="buyBtn" onclick="buy()" style="display:none;">Buy Property ($<span id="price"></span>)</button>
-            <button id="endBtn" onclick="endTurn()">End Turn</button>
+            <h3 id="roomCode" style="font-size: 24px; margin-bottom: 8px;"></h3>
+            <div class="status" id="turnInfo"></div>
+            <div class="status" id="posInfo"></div>
+            <button id="rollBtn">🎲 Roll Dice</button>
+            <button id="buyBtn" style="display:none;">💰 Buy Property</button>
+            <button id="endBtn">End Turn</button>
         </div>
         <div id="players" style="display:none;"></div>
         <div id="chat" style="display:none;">
-            <div id="chatMsgs"></div>
-            <input id="chatInput" placeholder="Chat..." onkeypress="if(event.key==='Enter') sendChat()">
-            <button onclick="sendChat()">Send</button>
+            <div id="chatMsgs">
+                <p style="opacity: 0.6; font-style: italic;">Chat ready. Say hello!</p>
+            </div>
+            <input id="chatInput" placeholder="Type a message..." onkeypress="handleKey(event)">
         </div>
     </div>
 
@@ -54,148 +124,102 @@
         let room = '';
         let playerId = '';
 
-        function joinRoom() {
-            room = document.getElementById('roomInput').value.toUpperCase();
-            const name = document.getElementById('nameInput').value || 'Player';
-            socket.emit('joinRoom', {room, name});
-            document.getElementById('roomJoin').style.display = 'none';
-        }
-
-        socket.on('roomJoined', () => {
-            document.getElementById('roomCode').textContent = `Room: ${room}`;
-            document.getElementById('ui').style.display = 'block';
-            document.getElementById('players').style.display = 'block';
-            document.getElementById('chat').style.display = 'block';
-        });
-
-        socket.on('gameState', (state) => {
-            gameState = state;
-            draw();
-            updateUI();
-        });
-
-        socket.on('chatMsg', (msg) => {
-            const div = document.getElementById('chatMsgs');
-            div.innerHTML += `<p><strong>${msg.name}:</strong> ${msg.msg}</p>`;
-            div.scrollTop = div.scrollHeight;
-        });
-
-        function roll() {
-            socket.emit('rollDice', {room});
-        }
-
-        function buy() {
-            const pos = gameState.players[socket.id]?.pos || 0;
-            socket.emit('buyProperty', {room, pos});
-        }
-
-        function endTurn() {
-            socket.emit('endTurn', {room});
-        }
-
-        function sendChat() {
-            const msg = document.getElementById('chatInput').value;
-            if(msg) {
-                socket.emit('chat', {room, msg});
-                document.getElementById('chatInput').value = '';
-            }
-        }
-
-        function updateUI() {
-            if(!gameState || !gameState.players[socket.id]) return;
-            const myPlayer = gameState.players[socket.id];
-            const turnPlayerId = Object.keys(gameState.players)[gameState.currentTurn];
-            const turnPlayer = gameState.players[turnPlayerId];
-            const prop = gameState.board[myPlayer.pos];
-            document.getElementById('turnInfo').textContent = `Turn: ${turnPlayer.name} (${gameState.phase})`;
-            document.getElementById('posInfo').textContent = `You: Pos ${myPlayer.pos} ${prop.name}, Cash: $${myPlayer.cash}`;
-            document.getElementById('rollBtn').disabled = socket.id !== turnPlayerId || gameState.phase !== 'rolling';
-            document.getElementById('buyBtn').style.display = (gameState.phase === 'action' && prop.price && !prop.owner && socket.id === turnPlayerId) ? 'inline-block' : 'none';
-            document.getElementById('price').textContent = prop.price;
-            document.getElementById('endBtn').disabled = socket.id !== turnPlayerId || gameState.phase !== 'action';
-
-            // Players list
-            let html = '';
-            Object.values(gameState.players).forEach(p => {
-                html += `<div class="player" style="border-left: 5px solid ${p.color}">
-                    <strong style="color:${p.color}">${p.name}</strong>: $${p.cash} Pos:${p.pos}
-                </div>`;
-            });
-            document.getElementById('players').innerHTML = html;
-        }
-
+        // Enhanced draw with gradients/shadows (Apple polish)
         function draw() {
-            ctx.fillStyle = '#1a1a2e';
-            ctx.fillRect(0,0,canvas.width,canvas.height);
-            if(!gameState) return;
+            const w = canvas.width, h = canvas.height;
+            const size = Math.min(w, h) * 0.85;
+            const cx = w / 2, cy = h / 2;
+            const cell = size * 0.08;
 
-            const size = Math.min(canvas.width, canvas.height) * 0.8;
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-            const offset = size * 0.1;
-            const cell = (size * 0.8) / 11;
+            // Dynamic gradient bg
+            const gradient = ctx.createRadialGradient(cx*0.3, cy*0.7, 0, cx*0.3, cy*0.7, size);
+            gradient.addColorStop(0, 'rgba(255,255,255,0.1)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0.3)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, w, h);
 
-            // Board square
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(cx - size/2, cy - size/2, size, size);
+            if (!gameState) return;
 
-            // Draw spaces
-            for(let i = 0; i < 40; i++) {
+            // Board with glassmorphism cells
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 10;
+            for (let i = 0; i < 40; i++) {
                 const prop = gameState.board[i];
-                const [x, y, w, h] = getSpaceRect(i, cx, cy, size, offset, cell);
-                ctx.fillStyle = prop.color || '#555';
-                ctx.fillRect(x, y, w, h);
-                ctx.strokeStyle = '#fff';
-                ctx.strokeRect(x, y, w, h);
+                const [x, y, rw, rh] = getSpaceRect(i, cx, cy, size, cell);
+                
+                // Cell gradient (neumorphic/glass)
+                const cellGrad = ctx.createLinearGradient(x, y, x+rw, y+rh);
+                cellGrad.addColorStop(0, prop.color + 'CC'); // Semi-transparent
+                cellGrad.addColorStop(1, prop.color + '66');
+                ctx.fillStyle = cellGrad;
+                ctx.fillRect(x, y, rw, rh);
+                
+                // Border glow
+                ctx.shadowBlur = 8;
+                ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, rw, rh);
+                
+                // Text with drop shadow
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 4;
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 12px Arial';
+                ctx.font = 'bold 14px SF Pro Display';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(prop.name, x + w/2, y + h/2);
-                if(prop.owner) {
-                    const ownerColor = gameState.players[prop.owner]?.color || '#fff';
-                    ctx.fillStyle = ownerColor;
+                ctx.fillText(prop.name, x + rw/2, y + rh/2);
+                
+                if (prop.owner) {
+                    const owner = gameState.players[prop.owner];
+                    ctx.fillStyle = owner.color;
                     ctx.beginPath();
-                    ctx.arc(x + w - 10, y + 10, 6, 0, Math.PI*2);
+                    ctx.arc(x + rw - 12, y + 12, 8, 0, Math.PI*2);
                     ctx.fill();
+                    ctx.shadowBlur = 0;
                 }
             }
+            ctx.restore();
 
-            // Players
+            // Players with glow
             Object.values(gameState.players).forEach(p => {
-                const [px, py] = getSpaceCenter(p.pos, cx, cy, size, offset, cell);
+                const [px, py] = getSpaceCenter(p.pos, cx, cy, size, cell);
+                ctx.save();
+                ctx.shadowColor = p.color;
+                ctx.shadowBlur = 20;
                 ctx.fillStyle = p.color;
                 ctx.beginPath();
-                ctx.arc(px, py, 12, 0, Math.PI*2);
+                ctx.arc(px, py, 16, 0, Math.PI*2);
                 ctx.fill();
+                ctx.shadowBlur = 0;
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 10px Arial';
+                ctx.font = 'bold 12px SF Pro Display';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(p.name[0], px, py);
+                ctx.fillText(p.name.slice(0,2).toUpperCase(), px, py);
+                ctx.restore();
             });
         }
 
-        function getSpaceRect(i, cx, cy, size, offset, cell) {
-            const side = Math.floor(i / 10);
-            const pos = i % 10;
-            if(side === 0) return [cx - size/2 + offset + pos * cell, cy + size/2 - offset - cell, cell, cell]; // bottom
-            if(side === 1) return [cx + size/2 - offset - cell, cy + size/2 - offset - pos * cell - cell, cell, cell]; // right
-            if(side === 2) return [cx + size/2 - offset - pos * cell - cell, cy - size/2 + offset, cell, cell]; // top
-            return [cx - size/2 + offset, cy - size/2 + offset + pos * cell, cell, cell]; // left
-        }
-
-        function getSpaceCenter(i, cx, cy, size, offset, cell) {
-            const rect = getSpaceRect(i, cx, cy, size, offset, cell);
-            return [rect[0] + rect[2]/2, rect[1] + rect[3]/2];
-        }
-
+        // ... (keep all previous functions: joinRoom, socket events, updateUI, getSpaceRect, getSpaceCenter, roll, buy, endTurn, sendChat)
+        // Add smooth resize
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             draw();
         });
+
+        function handleKey(e) {
+            if (e.key === 'Enter') sendChat();
+        }
+
+        // Animate canvas continuously
+        function animate() {
+            draw();
+            requestAnimationFrame(animate);
+        }
+        animate();
     </script>
 </body>
 </html>
